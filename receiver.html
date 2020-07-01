@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Call</title>
+</head>
+<body>
+
+<video id="local" autoplay></video>
+<video id="remote" autoplay></video>
+
+</body>
+
+<script src="https://unpkg.com/peerjs@1.2.0/dist/peerjs.min.js"></script>
+
+<script>
+
+    const peer = new Peer('receiver', {host: '127.0.0.1', port: 9000, path: '/'});
+
+    peer.on('call', function (call) {
+
+        const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+        getUserMedia(
+            {
+                video: true,
+                audio: true
+            },
+
+            function (stream) {
+
+                const localVideo = document.querySelector('video#local');
+                try {
+                    localVideo.srcObject = stream
+                } catch (error) {
+                    localVideo.src = URL.createObjectURL(stream);
+                }
+
+                call.answer(stream);
+
+                call.on('stream', function (remoteStream) {
+
+                    const remoteVideo = document.querySelector('video#remote');
+                    try {
+                        remoteVideo.srcObject = remoteStream
+                    } catch (error) {
+                        remoteVideo.src = URL.createObjectURL(remoteStream);
+                    }
+
+                });
+            },
+
+            function (err) {
+                console.log('Failed to get local stream', err);
+            }
+        );
+    });
+
+</script>
+
+</html>
